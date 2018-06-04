@@ -48,7 +48,7 @@
             // pbGameGrid
             // 
             this.pbGameGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pbGameGrid.Location = new System.Drawing.Point(12, 73);
+            this.pbGameGrid.Location = new System.Drawing.Point(12, 105);
             this.pbGameGrid.Name = "pbGameGrid";
             this.pbGameGrid.Size = new System.Drawing.Size(420, 300);
             this.pbGameGrid.TabIndex = 0;
@@ -57,9 +57,9 @@
             // pbScreenshot
             // 
             this.pbScreenshot.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pbScreenshot.Location = new System.Drawing.Point(12, 426);
+            this.pbScreenshot.Location = new System.Drawing.Point(438, 39);
             this.pbScreenshot.Name = "pbScreenshot";
-            this.pbScreenshot.Size = new System.Drawing.Size(290, 401);
+            this.pbScreenshot.Size = new System.Drawing.Size(234, 366);
             this.pbScreenshot.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pbScreenshot.TabIndex = 1;
             this.pbScreenshot.TabStop = false;
@@ -68,7 +68,7 @@
             // 
             // btnSaveSnap
             // 
-            this.btnSaveSnap.Location = new System.Drawing.Point(308, 426);
+            this.btnSaveSnap.Location = new System.Drawing.Point(548, 411);
             this.btnSaveSnap.Name = "btnSaveSnap";
             this.btnSaveSnap.Size = new System.Drawing.Size(124, 22);
             this.btnSaveSnap.TabIndex = 2;
@@ -78,7 +78,7 @@
             // 
             // btnLoadFile
             // 
-            this.btnLoadFile.Location = new System.Drawing.Point(307, 787);
+            this.btnLoadFile.Location = new System.Drawing.Point(548, 610);
             this.btnLoadFile.Name = "btnLoadFile";
             this.btnLoadFile.Size = new System.Drawing.Size(124, 40);
             this.btnLoadFile.TabIndex = 4;
@@ -89,7 +89,7 @@
             // cbCapture
             // 
             this.cbCapture.AutoSize = true;
-            this.cbCapture.Location = new System.Drawing.Point(308, 454);
+            this.cbCapture.Location = new System.Drawing.Point(548, 558);
             this.cbCapture.Name = "cbCapture";
             this.cbCapture.Size = new System.Drawing.Size(63, 17);
             this.cbCapture.TabIndex = 5;
@@ -104,16 +104,16 @@
             // clbSwaps
             // 
             this.clbSwaps.FormattingEnabled = true;
-            this.clbSwaps.Location = new System.Drawing.Point(438, 73);
+            this.clbSwaps.Location = new System.Drawing.Point(12, 411);
             this.clbSwaps.Name = "clbSwaps";
-            this.clbSwaps.Size = new System.Drawing.Size(222, 349);
+            this.clbSwaps.Size = new System.Drawing.Size(420, 244);
             this.clbSwaps.TabIndex = 6;
             this.clbSwaps.SelectedIndexChanged += new System.EventHandler(this.clbSwaps_SelectedIndexChanged);
             // 
             // pbPreview
             // 
             this.pbPreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pbPreview.Location = new System.Drawing.Point(308, 477);
+            this.pbPreview.Location = new System.Drawing.Point(548, 439);
             this.pbPreview.Name = "pbPreview";
             this.pbPreview.Size = new System.Drawing.Size(124, 113);
             this.pbPreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -122,7 +122,7 @@
             // 
             // btnSavePreview
             // 
-            this.btnSavePreview.Location = new System.Drawing.Point(309, 596);
+            this.btnSavePreview.Location = new System.Drawing.Point(548, 581);
             this.btnSavePreview.Name = "btnSavePreview";
             this.btnSavePreview.Size = new System.Drawing.Size(122, 23);
             this.btnSavePreview.TabIndex = 8;
@@ -141,9 +141,9 @@
             // pbEnemies
             // 
             this.pbEnemies.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pbEnemies.Location = new System.Drawing.Point(11, 39);
+            this.pbEnemies.Location = new System.Drawing.Point(12, 39);
             this.pbEnemies.Name = "pbEnemies";
-            this.pbEnemies.Size = new System.Drawing.Size(420, 28);
+            this.pbEnemies.Size = new System.Drawing.Size(420, 60);
             this.pbEnemies.TabIndex = 10;
             this.pbEnemies.TabStop = false;
             // 
@@ -151,7 +151,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(672, 839);
+            this.ClientSize = new System.Drawing.Size(675, 665);
             this.Controls.Add(this.pbEnemies);
             this.Controls.Add(this.cbTitanColor);
             this.Controls.Add(this.btnSavePreview);

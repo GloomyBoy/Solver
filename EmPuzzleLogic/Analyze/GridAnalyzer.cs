@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting;
 using System.Security.Cryptography.X509Certificates;
 using Emgu.CV.XImgproc;
 using EmPuzzleLogic.Behaviour;
@@ -10,118 +11,77 @@ namespace EmPuzzleLogic.Analyze
 {
     public class GridAnalyzer
     {
+        private static List<SwapResult> GetPossibleSwaps(Grid grid, SwapType type)
+        {
+            List<SwapResult> result = new List<SwapResult>();
+            var limW = grid.Width;
+            var limH = grid.Height;
+            switch (type)
+            {
+                case SwapType.Right:
+                    limW--;
+                    break;
+                case SwapType.Down:
+                    limH--;
+                    break;
+            }
+
+            for (int i = 0; i < limW; i++)
+            {
+                for (int j = 0; j < limH; j++)
+                {
+                    var testGrid = grid.Clone();
+                    var pointed = ActionFactory.GetBehaviour(testGrid[i, j]).Action(type);
+                    var collapsing = testGrid.GetCollapsingCells().Union(pointed).ToList();
+                    if (collapsing.Any())
+                    {
+                        SwapResult swap = new SwapResult() { X = i, Y = j, Direction = type };
+                        swap.Result = new CollapseResult(grid.Width);
+                        while (collapsing.Any())
+                        {
+                            var newCollapsing = new List<CellItem>(collapsing);
+                            foreach (var cellItem in collapsing)
+                            {
+                                newCollapsing.AddRange(ActionFactory.GetBehaviour(cellItem)
+                                    .Action(SwapType.Kill, newCollapsing));
+                            }
+
+                            swap.Result.Append(testGrid.Collapse(newCollapsing));
+                            collapsing = testGrid.GetCollapsingCells().Distinct().ToList();
+                        }
+                        result.Add(swap);
+                    }
+                }
+            }
+            return result;
+        }
+
         public static List<SwapResult> GetPossibleSwaps(Grid grid)
         {
             List<SwapResult> results = new List<SwapResult>();
-            for (int i = 0; i < grid.Width; i++)
-            {
-                for (int j = 0; j < grid.Height; j++)
-                {
-                    var testGrid = grid.Clone();
-                    var pointed = ActionFactory.GetBehaviour(testGrid[i, j]).Action(SwapType.Point);
-                    var collapsing = testGrid.GetCollapsingCells().Union(pointed).ToList();
-                    if (collapsing.Count() > 0)
-                    {
-                        SwapResult swap = new SwapResult() {X = i, Y = j, Direction = SwapType.Point};
-                        swap.Result = new CollapseResult(grid.Width);
-                        while (collapsing.Any())
-                        {
-                            var newCollapsing = new List<CellItem>(collapsing);
-                            foreach (var cellItem in collapsing)
-                            {
-                                newCollapsing.AddRange(ActionFactory.GetBehaviour(cellItem)
-                                    .Action(SwapType.Kill, newCollapsing));
-                            }
 
-                            swap.Result.Append(testGrid.Collapse(newCollapsing));
-                            collapsing = testGrid.GetCollapsingCells().Distinct().ToList();
-                        }
-
-                        results.Add(swap);
-                    }
-                }
-            }
-
-            for (int i = 0; i < grid.Width - 1; i++)
-            {
-                for (int j = 0; j < grid.Height; j++)
-                {
-                    var testGrid = grid.Clone();
-                    testGrid = grid.Clone();
-                    ActionFactory.GetBehaviour(testGrid[i, j]).Action(SwapType.Right);
-                    var collapsing = testGrid.GetCollapsingCells().ToList();
-                    if (collapsing.Count() > 0)
-                    {
-                        SwapResult swap = new SwapResult() {X = i, Y = j, Direction = SwapType.Right};
-                        swap.Result = new CollapseResult(grid.Width);
-                        while (collapsing.Any())
-                        {
-                            var newCollapsing = new List<CellItem>(collapsing);
-                            foreach (var cellItem in collapsing)
-                            {
-                                newCollapsing.AddRange(ActionFactory.GetBehaviour(cellItem)
-                                    .Action(SwapType.Kill, newCollapsing));
-                            }
-
-                            swap.Result.Append(testGrid.Collapse(newCollapsing));
-                            collapsing = testGrid.GetCollapsingCells().Distinct().ToList();
-                        }
-
-                        results.Add(swap);
-                    }
-                }
-            }
-
-            for (int i = 0; i < grid.Width; i++)
-            {
-                for (int j = 0; j < grid.Height - 1; j++)
-                {
-                    var testGrid = grid.Clone();
-
-                    testGrid = grid.Clone();
-                    ActionFactory.GetBehaviour(testGrid[i, j]).Action(SwapType.Down);
-                    var collapsing = testGrid.GetCollapsingCells().Distinct().ToList();
-                    if (collapsing.Count() > 0)
-                    {
-                        SwapResult swap = new SwapResult() {X = i, Y = j, Direction = SwapType.Down};
-                        swap.Result = new CollapseResult(grid.Width);
-                        while (collapsing.Any())
-                        {
-                            var newCollapsing = new List<CellItem>(collapsing);
-                            foreach (var cellItem in collapsing)
-                            {
-                                newCollapsing.AddRange(ActionFactory.GetBehaviour(cellItem)
-                                    .Action(SwapType.Kill, newCollapsing));
-                            }
-
-                            swap.Result.Append(testGrid.Collapse(newCollapsing));
-                            collapsing = testGrid.GetCollapsingCells().Distinct().ToList();
-                        }
-
-                        results.Add(swap);
-                    }
-                }
-            }
-
+            results.AddRange(GetPossibleSwaps(grid, SwapType.Point));
+            results.AddRange(GetPossibleSwaps(grid, SwapType.Right));
+            results.AddRange(GetPossibleSwaps(grid, SwapType.Down));
             
             foreach (var swapResult in results)
             {
-                int weight = 0;
                 foreach (var pair in swapResult.Result)
                 {
                     foreach (var i in pair.Value)
                     {
-                        weight += GetCellValue(i.Key, grid._enemies[pair.Key]);
+                        swapResult.Weight += GetCellValue(i.Key, grid._enemies[pair.Key]);
                     }
                 }
 
                 if (grid.WeakSlot >= 0)
                 {
                     if (swapResult.Result[grid.WeakSlot].Sum(r => r.Value) >= 3)
-                        weight *= 5;
+                    {
+                        swapResult.Weight = swapResult.Weight * 5;
+                        swapResult.WeakShot = true;
+                    }
                 }
-
-                swapResult.Weight = weight;
             }
 
             return results.OrderByDescending(r => r.Weight).ToList();
@@ -154,7 +114,6 @@ namespace EmPuzzleLogic.Analyze
             foreach (var color in killed.GroupBy(c => c.Tag))
             {
                 List<(int min, int max, int coord, bool vert)> groups = new List<(int, int, int, bool)>();
-                
                 foreach (var horzLine in color.GroupBy(c => c.Position.Y))
                 {
                     var orderedLine = horzLine.OrderBy(c => c.Position.X).ToArray();
@@ -194,20 +153,20 @@ namespace EmPuzzleLogic.Analyze
                     }
                 }
 
-                if(groups.Count() == 0)
+                if(!groups.Any())
                     continue;
 
                 List<(int, int, int, bool)> killedGroup = new List<(int, int, int, bool)>();
                 var group = groups.Take(1).ToList();
                 killedGroup.AddRange(group);
                 groups.Remove(group.Single());
-                while (groups.Count() > 0)
+                while (groups.Any())
                 {
                     foreach (var valueTuple in @group)
                     {
                         var inter = groups.Where(g =>
-                            g.vert != valueTuple.vert && g.coord >= valueTuple.min && g.coord <= valueTuple.max).Distinct();
-                        if (inter.Count() == 0)
+                            g.vert != valueTuple.vert && g.coord >= valueTuple.min && g.coord <= valueTuple.max).Distinct().ToList();
+                        if (!inter.Any())
                         {
                             var newItem = CheckKilledGroup(killedGroup, color.Key);
                             if (newItem != null)

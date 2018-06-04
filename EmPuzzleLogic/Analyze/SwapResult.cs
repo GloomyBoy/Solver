@@ -15,6 +15,8 @@ namespace EmPuzzleLogic.Analyze
 
         public int Weight { get; set; }
 
+        public bool WeakShot { get; set; }
+
         public override string ToString()
         {
             return

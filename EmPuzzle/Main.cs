@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using EmPuzzleLogic.Analyze;
 using EmPuzzleLogic.Entity;
 using EmPuzzleLogic.Enums;
+using EmPuzzleLogic.Helper;
 
 namespace EmPuzzle
 {
@@ -43,8 +44,10 @@ namespace EmPuzzle
         private void TimerOnTick(object sender, EventArgs e)
         {
             _timer.Stop();
-            LoadImage(CaptureApplication("Bluestacks"));
-            //CaptureApplication("Bluestacks");
+            var image = ProcessHelper.CaptureProcessWindow("Bluestacks");
+            pbScreenshot.Image = image;
+            pbScreenshot.SizeMode = PictureBoxSizeMode.Zoom;
+            LoadImage(image);
             _timer.Start();
         }
 
@@ -68,54 +71,9 @@ namespace EmPuzzle
             pbEnemies.Image = GridDrawer.GetGridEmenies(grid);
             var results = GridAnalyzer.GetPossibleSwaps(grid);
             clbSwaps.Items.Clear();
-            results.ForEach(swap => { clbSwaps.Items.Add(swap); });
+            clbSwaps.Items.AddRange(items: results.ToArray());
             if(results.Count > 0)
                 clbSwaps.SetSelected(0, true);
-            //if (grid.Game.SelectMany(g => g).Any(g => g.Color == CellColor.None)) return;
-            //new GridDrawer().DrawSwaps(grid, Graphics.FromImage(grid.Image));
-
-
-            //grid.GetBestSwap();
-        }
-
-        public Bitmap CaptureApplication(string procName)
-        {
-            var procs = Process.GetProcessesByName(procName);
-            if (procs.Length == 0)
-                return null;
-            var rect = new User32.Rect();
-            var proc = procs.Where(p =>
-            {
-                User32.GetWindowRect(p.MainWindowHandle, ref rect);
-                return rect.left != 0 && rect.right != 0;
-            }).First();
-           
-
-            int width = rect.right - rect.left;
-            int height = rect.bottom - rect.top;
-
-            var bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-            Graphics graphics = Graphics.FromImage(bmp);
-            graphics.CopyFromScreen(rect.left, rect.top, 0, 0, new Size(width, height), CopyPixelOperation.SourceCopy);
-            pbScreenshot.Image = bmp;
-            pbScreenshot.SizeMode = PictureBoxSizeMode.Zoom;
-            return bmp;
-            //bmp.Save("c:\\tmp\\test.png", ImageFormat.Png);
-        }
-
-        private class User32
-        {
-            [StructLayout(LayoutKind.Sequential)]
-            public struct Rect
-            {
-                public int left;
-                public int top;
-                public int right;
-                public int bottom;
-            }
-
-            [DllImport("user32.dll")]
-            public static extern IntPtr GetWindowRect(IntPtr hWnd, ref Rect rect);
         }
 
         private void btnSaveSnap_Click(object sender, EventArgs e)
@@ -124,7 +82,7 @@ namespace EmPuzzle
             {
                 Directory.CreateDirectory(Environment.CurrentDirectory + "\\Screenshot");
             }
-            var image = CaptureApplication("Bluestacks");
+            var image = ProcessHelper.CaptureProcessWindow("Bluestacks");
             if (image == null)
                 return;
             image.Save(Environment.CurrentDirectory + "\\Screenshot\\" + DateTime.Now.ToString("yy-MM-dd_hh-mm-ss") + ".bmp");
@@ -224,7 +182,6 @@ namespace EmPuzzle
 
         private void clbSwaps_SelectedIndexChanged(object sender, EventArgs e)
         {
-            int x = 1;
             var listBox = sender as CheckedListBox;
             pbGameGrid.Image = GridDrawer.GetGridImage(_grid);
             GridDrawer.DrawSwap((Bitmap) pbGameGrid.Image, listBox.SelectedItem as SwapResult);

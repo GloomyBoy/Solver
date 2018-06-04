@@ -13,14 +13,19 @@ namespace EmPuzzleLogic
         {
             switch (color)
             {
-                case CellColor.Blue: return Color.Blue;
-                case CellColor.Dark: return Color.BlueViolet;
-                case CellColor.Green: return Color.Green;
-                case CellColor.Light: return Color.Yellow;
-                case CellColor.Red: return Color.Red;
+                case CellColor.Blue:
+                    return Color.LightSkyBlue;;
+                case CellColor.Dark:
+                    return Color.DarkOrchid;// BlueViolet;
+                case CellColor.Green:
+                    return Color.LightGreen;// Green;
+                case CellColor.Light:
+                    return Color.Orange;// Yellow;
+                case CellColor.Red:
+                    return Color.HotPink;//Red;
             }
 
-            return Color.Black;
+            return Color.GhostWhite;
         }
 
         public static Image GetGridImage(Grid grid)
@@ -68,30 +73,7 @@ namespace EmPuzzleLogic
             }
             
         }
-
-        /*public void DrawSwaps(Grid grid, Graphics pic)
-        {
-            var bestSwap = grid.GetBestSwap();
-            var swaps = grid.GetSwaps();
-            foreach (var swap in swaps)
-            {
-                var pen = new Pen(swap.Equals(bestSwap.Item1) ? Color.Black : Color.Wheat);
-                //var pen = new Pen(Color.Red);
-                pen.Width = swap.Equals(bestSwap.Item1) ? 5 : 3;
-                Point start = new Point(swap.Col * 60 + 30, swap.Row * 60 + 30);
-                Point end = start;
-                switch (swap.Direction)
-                {
-                    case SwapDirection.Bottom:
-                        end = new Point(start.X, start.Y + 60);
-                        break;
-                    case SwapDirection.Left:
-                        end = new Point(start.X + 60, start.Y);
-                        break;
-                }
-                pic.DrawLine(pen, start, end);
-            }
-        }*/
+       
         public static void DrawSwap(Bitmap pbResult, SwapResult swapResult)
         {
             var pen = new Pen(Color.Black, 3);
