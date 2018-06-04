@@ -34,14 +34,21 @@
             this.btnLoadFile = new System.Windows.Forms.Button();
             this.cbCapture = new System.Windows.Forms.CheckBox();
             this.ofLoadImage = new System.Windows.Forms.OpenFileDialog();
-            this.checkedListBox1 = new System.Windows.Forms.CheckedListBox();
+            this.clbSwaps = new System.Windows.Forms.CheckedListBox();
+            this.pbPreview = new System.Windows.Forms.PictureBox();
+            this.btnSavePreview = new System.Windows.Forms.Button();
+            this.cbTitanColor = new System.Windows.Forms.ComboBox();
+            this.pbEnemies = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pbGameGrid)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbScreenshot)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbPreview)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbEnemies)).BeginInit();
             this.SuspendLayout();
             // 
             // pbGameGrid
             // 
-            this.pbGameGrid.Location = new System.Drawing.Point(12, 120);
+            this.pbGameGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pbGameGrid.Location = new System.Drawing.Point(12, 73);
             this.pbGameGrid.Name = "pbGameGrid";
             this.pbGameGrid.Size = new System.Drawing.Size(420, 300);
             this.pbGameGrid.TabIndex = 0;
@@ -49,17 +56,21 @@
             // 
             // pbScreenshot
             // 
+            this.pbScreenshot.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pbScreenshot.Location = new System.Drawing.Point(12, 426);
             this.pbScreenshot.Name = "pbScreenshot";
-            this.pbScreenshot.Size = new System.Drawing.Size(289, 401);
+            this.pbScreenshot.Size = new System.Drawing.Size(290, 401);
+            this.pbScreenshot.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pbScreenshot.TabIndex = 1;
             this.pbScreenshot.TabStop = false;
+            this.pbScreenshot.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pbScreenshot_MouseDown);
+            this.pbScreenshot.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pbScreenshot_MouseUp);
             // 
             // btnSaveSnap
             // 
-            this.btnSaveSnap.Location = new System.Drawing.Point(308, 427);
+            this.btnSaveSnap.Location = new System.Drawing.Point(308, 426);
             this.btnSaveSnap.Name = "btnSaveSnap";
-            this.btnSaveSnap.Size = new System.Drawing.Size(124, 37);
+            this.btnSaveSnap.Size = new System.Drawing.Size(124, 22);
             this.btnSaveSnap.TabIndex = 2;
             this.btnSaveSnap.Text = "Take Screenshot";
             this.btnSaveSnap.UseVisualStyleBackColor = true;
@@ -78,7 +89,7 @@
             // cbCapture
             // 
             this.cbCapture.AutoSize = true;
-            this.cbCapture.Location = new System.Drawing.Point(308, 470);
+            this.cbCapture.Location = new System.Drawing.Point(308, 454);
             this.cbCapture.Name = "cbCapture";
             this.cbCapture.Size = new System.Drawing.Size(63, 17);
             this.cbCapture.TabIndex = 5;
@@ -90,20 +101,62 @@
             // 
             this.ofLoadImage.FileName = "openFileDialog1";
             // 
-            // checkedListBox1
+            // clbSwaps
             // 
-            this.checkedListBox1.FormattingEnabled = true;
-            this.checkedListBox1.Location = new System.Drawing.Point(308, 601);
-            this.checkedListBox1.Name = "checkedListBox1";
-            this.checkedListBox1.Size = new System.Drawing.Size(124, 139);
-            this.checkedListBox1.TabIndex = 6;
+            this.clbSwaps.FormattingEnabled = true;
+            this.clbSwaps.Location = new System.Drawing.Point(438, 73);
+            this.clbSwaps.Name = "clbSwaps";
+            this.clbSwaps.Size = new System.Drawing.Size(222, 349);
+            this.clbSwaps.TabIndex = 6;
+            this.clbSwaps.SelectedIndexChanged += new System.EventHandler(this.clbSwaps_SelectedIndexChanged);
+            // 
+            // pbPreview
+            // 
+            this.pbPreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pbPreview.Location = new System.Drawing.Point(308, 477);
+            this.pbPreview.Name = "pbPreview";
+            this.pbPreview.Size = new System.Drawing.Size(124, 113);
+            this.pbPreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pbPreview.TabIndex = 7;
+            this.pbPreview.TabStop = false;
+            // 
+            // btnSavePreview
+            // 
+            this.btnSavePreview.Location = new System.Drawing.Point(309, 596);
+            this.btnSavePreview.Name = "btnSavePreview";
+            this.btnSavePreview.Size = new System.Drawing.Size(122, 23);
+            this.btnSavePreview.TabIndex = 8;
+            this.btnSavePreview.Text = "Save";
+            this.btnSavePreview.UseVisualStyleBackColor = true;
+            this.btnSavePreview.Click += new System.EventHandler(this.btnSavePreview_Click);
+            // 
+            // cbTitanColor
+            // 
+            this.cbTitanColor.FormattingEnabled = true;
+            this.cbTitanColor.Location = new System.Drawing.Point(12, 12);
+            this.cbTitanColor.Name = "cbTitanColor";
+            this.cbTitanColor.Size = new System.Drawing.Size(121, 21);
+            this.cbTitanColor.TabIndex = 9;
+            // 
+            // pbEnemies
+            // 
+            this.pbEnemies.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pbEnemies.Location = new System.Drawing.Point(11, 39);
+            this.pbEnemies.Name = "pbEnemies";
+            this.pbEnemies.Size = new System.Drawing.Size(420, 28);
+            this.pbEnemies.TabIndex = 10;
+            this.pbEnemies.TabStop = false;
             // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(443, 839);
-            this.Controls.Add(this.checkedListBox1);
+            this.ClientSize = new System.Drawing.Size(672, 839);
+            this.Controls.Add(this.pbEnemies);
+            this.Controls.Add(this.cbTitanColor);
+            this.Controls.Add(this.btnSavePreview);
+            this.Controls.Add(this.pbPreview);
+            this.Controls.Add(this.clbSwaps);
             this.Controls.Add(this.cbCapture);
             this.Controls.Add(this.btnLoadFile);
             this.Controls.Add(this.btnSaveSnap);
@@ -113,6 +166,8 @@
             this.Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)(this.pbGameGrid)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbScreenshot)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbPreview)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbEnemies)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -126,7 +181,11 @@
         private System.Windows.Forms.Button btnLoadFile;
         private System.Windows.Forms.CheckBox cbCapture;
         private System.Windows.Forms.OpenFileDialog ofLoadImage;
-        private System.Windows.Forms.CheckedListBox checkedListBox1;
+        private System.Windows.Forms.CheckedListBox clbSwaps;
+        private System.Windows.Forms.PictureBox pbPreview;
+        private System.Windows.Forms.Button btnSavePreview;
+        private System.Windows.Forms.ComboBox cbTitanColor;
+        private System.Windows.Forms.PictureBox pbEnemies;
     }
 }
 

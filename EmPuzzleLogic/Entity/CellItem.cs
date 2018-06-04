@@ -29,12 +29,13 @@ namespace EmPuzzleLogic.Entity
 
             var tag = "-";
             tag = Tag.ToString().Substring(0, 1);
-
+            return $"{type}:{tag}";
             return $"{Position}:{type}:{tag}";
         }
 
         public static string EmptyString()
         {
+            return "---";
             return "[---]:[-]:[-]";
         }
     }

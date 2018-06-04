@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
@@ -17,6 +19,10 @@ namespace EmPuzzleLogic
     {
         private static Dictionary<CellColor, Dictionary<CellType, Image<Bgr, byte>>> _cellTypes =
             new Dictionary<CellColor, Dictionary<CellType, Image<Bgr, byte>>>();
+        private static Dictionary<CellColor, Image<Bgr, byte>> _enemyCirclesSmall = new Dictionary<CellColor, Image<Bgr, byte>>();
+        private static Dictionary<CellColor, Image<Bgr, byte>> _enemyCirclesMed = new Dictionary<CellColor, Image<Bgr, byte>>();
+        private static Dictionary<CellColor, Image<Bgr, byte>> _enemyCirclesLarge = new Dictionary<CellColor, Image<Bgr, byte>>();
+        private static Image<Gray, float> _weakPoint;
 
         static PictureHelper()
         {
@@ -33,12 +39,28 @@ namespace EmPuzzleLogic
                         _cellTypes[(CellColor)cellType][(CellType)cellSpec] = new Image<Bgr, byte>(bitmap);
                     }
                 }
-            }
-        }
 
-        private static Bitmap ToBlackAndWhite(Bitmap bmp)
-        {
-            return bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), PixelFormat.Format1bppIndexed);
+                if (File.Exists(dir + $"\\{(CellColor) cellType}_small_circle.png"))
+                {
+                    var bitmap = new Bitmap(Bitmap.FromFile(dir + $"\\{(CellColor)cellType}_small_circle.png"));
+                    _enemyCirclesSmall[(CellColor)cellType] = new Image<Bgr, byte>(bitmap);
+                }
+                if (File.Exists(dir + $"\\{(CellColor)cellType}_large_circle.png"))
+                {
+                    var bitmap = new Bitmap(Bitmap.FromFile(dir + $"\\{(CellColor)cellType}_large_circle.png"));
+                    _enemyCirclesLarge[(CellColor)cellType] = new Image<Bgr, byte>(bitmap);
+                }
+                if (File.Exists(dir + $"\\{(CellColor)cellType}_med_circle.png"))
+                {
+                    var bitmap = new Bitmap(Bitmap.FromFile(dir + $"\\{(CellColor)cellType}_med_circle.png"));
+                    _enemyCirclesMed[(CellColor)cellType] = new Image<Bgr, byte>(bitmap);
+                }
+                if (File.Exists(dir + $"\\weak_point.png"))
+                {
+                    var bitmap = new Bitmap(Bitmap.FromFile(dir + $"\\weak_point.png"));
+                    _weakPoint = new Image<Gray, float>(bitmap);
+                }
+            }
         }
 
         private static Point _gridStart = new Point(16, 360);
@@ -48,13 +70,12 @@ namespace EmPuzzleLogic
         private static int _gridXCount = 7;
         private static int _gridYCount = 5;
 
-        public static Grid LoadImage(Bitmap image)
+        public static void LoadImage(Bitmap image, out Grid grid)
         {
-            Grid grid = new Grid(7, 5);
-            /*GameGrid grid = new GameGrid()
-            {
-                Game = new GridCell[_gridXCount][]
-            };*/
+            grid = null;
+            if (image == null)
+                return;
+            Grid result_grid = new Grid(7, 5);
             System.Drawing.Imaging.PixelFormat format =  image.PixelFormat;
             for (int i = 0; i < _gridXCount; i++)
             {                
@@ -63,17 +84,31 @@ namespace EmPuzzleLogic
                     Rectangle rect = new Rectangle(_gridStart.X + _cellSize * i, _gridStart.Y + _cellSize * j, _cellSize, _cellSize);
                     var pic = image.Clone(rect, format);
                     var cellType = FindColor(pic);
-                    grid[i, j] = new CellItem(cellType.Item2, cellType.Item1);                    
+                    if (cellType.Item1 == CellColor.None)
+                        return;
+                    result_grid[i, j] = new CellItem(cellType.Item2, cellType.Item1);                    
                 }
             }
-            GridAnalyzer.GetPossibleSwaps(grid);
-            return grid;
+
+            var imageGray = new Image<Gray, float>(image);
+            var points = GetTemplatePosition(imageGray, _weakPoint, 0.9);
+            if (points?.Length != 0)
+            {
+                result_grid.WeakSlot = (points[0].X - _gridStart.X) / _cellSize; ;
+            }
+
+            var result = DetectEnemies(image);
+            foreach (var cellColor in result)
+            {
+                result_grid._enemies[cellColor.Key] = cellColor.Value;
+            }
+            grid = result_grid;
         }
 
-        public static Grid LoadImage(string path)
+        public static void LoadImage(string path, out Grid grid)
         {
             Bitmap image = (Bitmap)Bitmap.FromFile(path);
-            return LoadImage(image);
+            LoadImage(image, out grid);
         }
 
         public static (CellColor, CellType) FindColor(Bitmap bmp)
@@ -84,7 +119,7 @@ namespace EmPuzzleLogic
             {
                 foreach (var cellSpec in cellType.Value)
                 {
-                    if (Detect_object(rootImage, cellSpec.Value, 0.9))
+                    if (GetTemplatePosition(rootImage, cellSpec.Value, 0.93, out var diff).Length > 0)
                     {
                         return (cellType.Key, cellSpec.Key);
                     }
@@ -94,39 +129,131 @@ namespace EmPuzzleLogic
             return (CellColor.None, CellType.Regular);
         }
 
-        public static bool Detect_object(Image<Bgr, Byte> Area_Image, Image<Bgr, Byte> image_object, double max_diff)
+        public static Dictionary<int, CellColor> DetectEnemies(Bitmap grid)
         {
-            bool success = false;
-            Point location;
-            //Work out padding array size
-            Point dftSize = new Point(Area_Image.Width + (image_object.Width * 2), Area_Image.Height + (image_object.Height * 2));
-            //Pad the Array with zeros
-            using (Image<Bgr, Byte> pad_array = new Image<Bgr, Byte>(dftSize.X, dftSize.Y))
+            var smallCircle = _enemyCirclesSmall.First();
+
+            var gridT = new Image<Gray, float>(grid);
+            Dictionary<int, (int, CellColor)> enemies = new Dictionary<int, (int, CellColor)>();
+            Point[] position = GetTemplatePosition(gridT, new Image<Gray, float>(smallCircle.Value.Bitmap), 0.4);
+            while (position.Length > 0)
             {
-                //copy centre
-                pad_array.ROI = new Rectangle(image_object.Width, image_object.Height, Area_Image.Width, Area_Image.Height);
-                CvInvoke.cvCopy(Area_Image, pad_array, IntPtr.Zero);
-
-                pad_array.ROI = (new Rectangle(0, 0, dftSize.X, dftSize.Y));
-
-                //Match Template
-                using (Image<Gray, float> result_Matrix = pad_array.MatchTemplate(image_object, TemplateMatchingType.CcoeffNormed))
+                var rectX = position[0].X - 30;
+                var rectY = position[0].Y - 30;
+                var hX = (position[0].Y - rectY) + smallCircle.Value.Height + 30;
+                var wX = position[0].X - rectX + smallCircle.Value.Width + 30;
+                if (wX + rectX > grid.Width)
                 {
-                    Point[] MAX_Loc, Min_Loc;
-                    double[] min, max;
-                    //Limit ROI to look for Match
+                    wX = grid.Width - rectX;
+                }
 
-                    result_Matrix.ROI = new Rectangle(image_object.Width, image_object.Height, Area_Image.Width - image_object.Width, Area_Image.Height - image_object.Height);
+                if (hX + rectY > grid.Height)
+                {
+                    hX = grid.Height - rectY;
+                }
 
-                    result_Matrix.MinMax(out min, out max, out Min_Loc, out MAX_Loc);
+                if (rectX < 0)
+                    rectX = 0;
+                if (rectY < 0)
+                    rectY = 0;
 
-                    location = new Point((MAX_Loc[0].X), (MAX_Loc[0].Y));
-                    success = max[0] > max_diff;
-                    var Results = result_Matrix.Convert<Gray, Double>();
 
+                var rectangle = new Rectangle(rectX, rectY, wX, hX);
+                var cloned = grid.Clone(rectangle, grid.PixelFormat);
+                var color = GetEnemyColor(cloned, 1);
+                foreach (var i in GetEnemyPosition(position[0].X, 1))
+                {
+                    if (!enemies.ContainsKey(i) || enemies[i].Item1 < position[0].Y)
+                    {
+                        enemies[i] = (position[0].Y, color);
+                    }
+                }
+                
+                var newBmp = grid;
+                Graphics g = Graphics.FromImage(newBmp);
+                g.FillRectangle(new SolidBrush(Color.Black), position[0].X, position[0].Y, smallCircle.Value.Width, smallCircle.Value.Height);
+                g.Save();
+                gridT = new Image<Gray, float>(newBmp);
+                position = GetTemplatePosition(gridT, new Image<Gray, float>(smallCircle.Value.Bitmap), 0.5);
+            }
+
+            return enemies.ToDictionary(e => e.Key, e => e.Value.Item2);
+        }
+
+        public static List<int> GetEnemyPosition(int x, int size)
+        {
+            switch (size)
+            {
+                case 1:
+                    return (List<int>) (x % 60 > 30 ? Enumerable.Range(x / 60, 3).ToList() : Enumerable.Range(x / 60, 2).Select(i => i).ToList());
+            }
+
+            return null;
+        }
+
+        public static CellColor GetEnemyColor(Bitmap bmp, int size)
+        {
+            var dic = _enemyCirclesSmall;
+            switch (size)
+            {
+                case 2: dic = _enemyCirclesMed;
+                    break;
+                case 3: dic = _enemyCirclesLarge;
+                    break;
+
+            }
+
+            double max = 0;
+            CellColor color = CellColor.None;
+            var testImage = new Image<Bgr, byte>(bmp);
+            foreach (var testColor in dic)
+            {
+                GetTemplatePosition(testImage, testColor.Value, 0.5, out var diff);
+                if (max < diff)
+                {
+                    color = testColor.Key;
+                    max = diff;
                 }
             }
-            return success;
+
+            return color;
+        }
+
+        public static Point[] GetTemplatePosition(Image<Gray, float> source, Image<Gray, float> template, double diff, bool useSobel = false)
+        {
+            var sourceSobel = useSobel ? source.Sobel(1, 0, 3) : source;
+            var templateSobel = useSobel ? template.Sobel(1, 0, 3) : template;
+
+            using (Image<Gray, float> result = sourceSobel.MatchTemplate(templateSobel, TemplateMatchingType.CcoeffNormed))
+            {
+                double[] minValues, maxValues;
+                Point[] minLocations, maxLocations;
+                result.MinMax(out minValues, out maxValues, out minLocations, out maxLocations);
+                if (maxValues.Length > 0 && maxValues[0] > diff)
+                {
+                    return maxLocations;
+                }
+            }
+
+            return new Point[0];
+        }
+
+        public static Point[] GetTemplatePosition(Image<Bgr, byte> source, Image<Bgr, byte> template, double diff, out double currentDiff)
+        {
+            currentDiff = 0;
+            using (Image<Gray, float> result = source.MatchTemplate(template, TemplateMatchingType.CcoeffNormed))
+            {
+                double[] minValues, maxValues;
+                Point[] minLocations, maxLocations;
+                result.MinMax(out minValues, out maxValues, out minLocations, out maxLocations);
+                if (maxValues.Length > 0 && maxValues[0] > diff)
+                {
+                    currentDiff = maxValues[0];
+                    return maxLocations;
+                }
+            }
+
+            return new Point[0];
         }
     }
 }

@@ -67,7 +67,7 @@ namespace EmPuzzleLogic.Behaviour
                     {
                         for (int j = 0; j < _item.Parent.Height; j++)
                         {
-                            if(_item.Parent[i, j].Tag == _item.Tag)
+                            if(_item.Parent[i, j]?.Tag == _item.Tag)
                                 touch.AddRange(ActionFactory.GetBehaviour(_item.Parent[i,j])
                                     .Action(SwapType.Kill, touch));
                         }
@@ -152,7 +152,7 @@ namespace EmPuzzleLogic.Behaviour
             switch (action)
             {
                 case SwapType.Point:
-                    throw new NotImplementedException("Regular cells has no point actions");
+                    return new List<CellItem>();
                 case SwapType.Down:
                     if (_item.Parent.Height <= _item.Position.Y + 1)
                         throw new MovementException($"Cant move cell {_item} down");

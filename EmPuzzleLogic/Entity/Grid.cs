@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using EmPuzzleLogic.Analyze;
 using EmPuzzleLogic.Behaviour;
 using EmPuzzleLogic.Enums;
 
@@ -12,11 +13,20 @@ namespace EmPuzzleLogic.Entity
         public int Width { get; private set; }
         public int Height { get; private set; }
 
+        public int WeakSlot { get; set; } = -1;
+
+        public Dictionary<int, CellColor> _enemies = new Dictionary<int, CellColor>();
+        
+        
         public Grid(int width, int height)
         {
             Width = width;
             Height = height;
             _grid = new CellItem[width, height];
+            foreach (var i in Enumerable.Range(0, Width))
+            {
+                _enemies[i] = CellColor.None;
+            }
         }
 
         public CellItem this[int i, int j]
@@ -47,14 +57,20 @@ namespace EmPuzzleLogic.Entity
             var inCollapse = new List<CellItem>();
             foreach (var cellItem in collapsing)
             {
-                inCollapse.AddRange(ActionFactory.GetBehaviour(cellItem).Action(SwapType.Kill, inCollapse));
+                inCollapse.AddRange(ActionFactory.GetBehaviour(cellItem).Action(SwapType.Kill, inCollapse.ToList()));
             }
-            var result = inCollapse.Distinct().ToList();
-            foreach (var cellItem in result.Union(additional))
+            var result = inCollapse.Union(additional).Distinct().ToList();
+            var newItems = GridAnalyzer.GetGeneratedCells(result);
+            
+            foreach (var cellItem in result)
             {
                 this[cellItem.Position.X, cellItem.Position.Y] = null;
             }
-            
+            foreach (var cellItem in newItems)
+            {
+                this[cellItem.Position.X, cellItem.Position.Y] = cellItem;
+            }
+
             for (int i = 0; i < Width; i++)
             {
                 for (int j = 1; j < Height; j++)
@@ -62,7 +78,7 @@ namespace EmPuzzleLogic.Entity
                     var moveUp = j;
                     while (moveUp > 0 && this[i, moveUp] != null && this[i, moveUp - 1] == null)
                     {
-                        this[i, moveUp - 1] = this[i, j];
+                        this[i, moveUp - 1] = this[i, moveUp];
                         this[i, moveUp] = null;
                         moveUp--;
                     }
@@ -109,9 +125,11 @@ namespace EmPuzzleLogic.Entity
                 case Direction.Right:
                     if (Width - x > 2)
                     {
-                        var tag = this[x, y].Tag;
+                        var tag = this[x, y]?.Tag;
+                        if(tag == null)
+                            return count;
                         var index = x + count;
-                        while (index < Width && tag == this[index, y].Tag)
+                        while (index < Width && tag == this[index, y]?.Tag)
                         {
                             count++;
                             index = x + count;
@@ -121,9 +139,11 @@ namespace EmPuzzleLogic.Entity
                 case Direction.Down:
                     if (Height - y > 2)
                     {
-                        var tag = this[x, y].Tag;
+                        var tag = this[x, y]?.Tag;
+                        if (tag == null)
+                            return count;
                         var index = y + count;
-                        while (index < Width && tag == this[x, index].Tag)
+                        while (index < Height && tag == this[x, index]?.Tag)
                         {
                             count++;
                             index = y + count;
@@ -142,7 +162,7 @@ namespace EmPuzzleLogic.Entity
                 string row = "|";
                 for (int j = 0; j < Width; j++)
                 {
-                    row += this[j, i]?.ToString() ?? CellItem.EmptyString() + "|";
+                    row += (this[j, i]?.ToString() ?? CellItem.EmptyString()) + "|";
                 }
                 result += row + Environment.NewLine;
             }
@@ -157,6 +177,19 @@ namespace EmPuzzleLogic.Entity
                 result[cellItem.Position.X, cellItem.Position.Y] = new CellItem(cellItem.Type, cellItem.Tag);
             }
             return result;
+        }
+
+        public bool IsEqual(Grid grid)
+        {
+            if (grid == null)
+                return false;
+            foreach (var cellItem in this._grid)
+            {
+                if(cellItem.Type != grid[cellItem.Position].Type || cellItem.Tag != grid[cellItem.Position].Tag)
+                    return false;
+            }
+
+            return true;
         }
     }
 }
