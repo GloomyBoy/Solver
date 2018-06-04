@@ -7,6 +7,7 @@ namespace EmPuzzleLogic.Analyze
     public class SwapResult
     {
         public int X { get; set; }
+
         public int Y { get; set; }
 
         public SwapType Direction { get; set; }
@@ -19,8 +20,19 @@ namespace EmPuzzleLogic.Analyze
 
         public override string ToString()
         {
+            var weakshot = WeakShot ? "!Weak!" : "......";
+            string direction = "";
+            switch (Direction)
+            {
+                case SwapType.Right: direction = ">";
+                    break;
+                case SwapType.Down: direction = "v";
+                    break;
+                case SwapType.Point: direction = "x";
+                    break;
+            }
             return
-                $"{X}:{Y} - {Direction} - {Result.SelectMany(r => r.Value).Sum(r => r.Value)} - {Result.Select(r => r.Value.Sum(tr => tr.Value).ToString()).Aggregate((o, n) => o.ToString() + "|" + n.ToString())}";
+                $"{X}:{Y} - {direction} - {weakshot} - {Result.SelectMany(r => r.Value).Sum(r => r.Value)} - {Result.Select(r => r.Value.Sum(tr => tr.Value).ToString()).Aggregate((o, n) => o.ToString() + "|" + n.ToString())}";
         }
     }
 }

@@ -38,7 +38,6 @@ namespace EmPuzzle
             _timer.Interval = 500;
             _timer.Enabled = false ;
             _timer.Tick += TimerOnTick;
-            //LoadImage();
         }
 
         private void TimerOnTick(object sender, EventArgs e)
@@ -68,7 +67,7 @@ namespace EmPuzzle
                 }
             }
             pbGameGrid.Image = GridDrawer.GetGridImage(grid);
-            pbEnemies.Image = GridDrawer.GetGridEmenies(grid);
+            GridDrawer.GetGridEnemies(grid, pbEnemies.Image);
             var results = GridAnalyzer.GetPossibleSwaps(grid);
             clbSwaps.Items.Clear();
             clbSwaps.Items.AddRange(items: results.ToArray());
@@ -185,6 +184,7 @@ namespace EmPuzzle
             var listBox = sender as CheckedListBox;
             pbGameGrid.Image = GridDrawer.GetGridImage(_grid);
             GridDrawer.DrawSwap((Bitmap) pbGameGrid.Image, listBox.SelectedItem as SwapResult);
+            GridDrawer.GetSwapResultPicture(listBox.SelectedItem as SwapResult, pbEnemies.Image);
         }
     }
 }

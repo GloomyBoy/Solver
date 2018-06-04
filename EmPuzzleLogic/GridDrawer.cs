@@ -14,7 +14,7 @@ namespace EmPuzzleLogic
             switch (color)
             {
                 case CellColor.Blue:
-                    return Color.LightSkyBlue;;
+                    return Color.LightSkyBlue;
                 case CellColor.Dark:
                     return Color.DarkOrchid;// BlueViolet;
                 case CellColor.Green:
@@ -22,7 +22,7 @@ namespace EmPuzzleLogic
                 case CellColor.Light:
                     return Color.Orange;// Yellow;
                 case CellColor.Red:
-                    return Color.HotPink;//Red;
+                    return Color.LightCoral;//Red;
             }
 
             return Color.GhostWhite;
@@ -44,9 +44,6 @@ namespace EmPuzzleLogic
                     DrawCell(pic, grid[i,j]);
                 }
             }
-            //GridAnalyzer.GetPossibleSwaps(grid);
-
-            //DrawSwaps(grid, pic);
             return result;
         }
 
@@ -59,12 +56,12 @@ namespace EmPuzzleLogic
             switch (cell.Type)
             {
                 case CellType.Dragon:
-                    PointF[] points = new PointF[4];
+                    PointF[] points = new PointF[5];
                     points[0] = new PointF(30, 10);
                     points[1] = new PointF(50, 30);
                     points[2] = new PointF(30, 50);
                     points[3] = new PointF(10, 30);
-                    points[3] = new PointF(30, 10);
+                    points[4] = new PointF(30, 10);
                     graph.DrawLines(pen, points);
                     break;
                 case CellType.Crystal:
@@ -96,17 +93,58 @@ namespace EmPuzzleLogic
             g.DrawLine(pen, start, end);
         }
 
-        public static Image GetGridEmenies(Grid grid)
+        public static Image GetGridEnemies(Grid grid, Image image)
         {
-            Bitmap bmp = new Bitmap(60 * 7, 60);
+            Bitmap bmp = image as Bitmap;
             var g = Graphics.FromImage(bmp);
+            var width = bmp.Width / grid._enemies.Count;
+            var height = bmp.Height;
             foreach (var gridEnemy in grid._enemies)
             {
-                g.FillRectangle(new SolidBrush(GetCellColor(gridEnemy.Value)), new Rectangle(gridEnemy.Key * 60, 0, 60, 60));
+                g.FillRectangle(new SolidBrush(GetCellColor(gridEnemy.Value)), new Rectangle(gridEnemy.Key * width, 0, width, height / 2));
+                if (grid.WeakSlot != gridEnemy.Key)
+                {
+                    g.DrawRectangle(new Pen(Color.Black), new Rectangle(gridEnemy.Key * width, 0, width, height));
+                }
+                else
+                {
+                    g.DrawRectangle(new Pen(Color.Red, 3), new Rectangle(gridEnemy.Key * width, 0, width - 3, height - 3));
+                }
             }
 
             g.Save(); 
             return (Image) bmp;
+        }
+
+        public static Image GetSwapResultPicture(SwapResult result, Image image)
+        {
+            Bitmap bmp = image as Bitmap;
+            var g = Graphics.FromImage(bmp);
+            var width = bmp.Width / result.Result.Count();
+            var height = bmp.Height;
+            Font f = new Font("Arial", 10, FontStyle.Regular);
+            Brush p = new SolidBrush(Color.Black);
+            foreach (var resultCell in result.Result)
+            {
+                var totalCnt = resultCell.Value.Sum(r => r.Value);
+                g.DrawString(totalCnt.ToString(), f, p, resultCell.Key * width + 10, 5);
+                var items = resultCell.Value.SelectMany(i => Enumerable.Repeat(i.Key, i.Value));
+                int currX = 5;
+                int currY = height / 2 + 5;
+                foreach (var item in items){
+                    Rectangle r = new Rectangle(width * resultCell.Key + currX, currY, 5, 5);
+                    Brush b = new SolidBrush(GetCellColor(item));
+                    g.FillRectangle(b, r);
+                    currX += 8;
+                    if (currX + 5 >= width)
+                    {
+                        currX = 5;
+                        currY += 8;
+                    }
+                }
+            }
+            g.Save();
+            return (Image)bmp;
         }
     }
 }
