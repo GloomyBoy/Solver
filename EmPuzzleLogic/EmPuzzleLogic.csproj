@@ -57,7 +57,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analyze\GridAnalyzer.cs" />
+    <Compile Include="Analyze\ITargetStrategy.cs" />
     <Compile Include="Analyze\SwapResult.cs" />
+    <Compile Include="Analyze\TitanSwapComparer.cs" />
     <Compile Include="Behaviour\ActionFactory.cs" />
     <Compile Include="Behaviour\IBehaviour.cs" />
     <Compile Include="Behaviour\MovementException.cs" />

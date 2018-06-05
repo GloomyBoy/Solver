@@ -57,11 +57,11 @@ namespace EmPuzzleLogic
             {
                 case CellType.Dragon:
                     PointF[] points = new PointF[5];
-                    points[0] = new PointF(30, 10);
-                    points[1] = new PointF(50, 30);
-                    points[2] = new PointF(30, 50);
-                    points[3] = new PointF(10, 30);
-                    points[4] = new PointF(30, 10);
+                    points[0] = new PointF(cell.Position.X * 60 + 30, cell.Position.Y * 60 + 10);
+                    points[1] = new PointF(cell.Position.X * 60 + 50, cell.Position.Y * 60 + 30);
+                    points[2] = new PointF(cell.Position.X * 60 + 30, cell.Position.Y * 60 + 50);
+                    points[3] = new PointF(cell.Position.X * 60 + 10, cell.Position.Y * 60 + 30);
+                    points[4] = new PointF(cell.Position.X * 60 + 30, cell.Position.Y * 60 + 10);
                     graph.DrawLines(pen, points);
                     break;
                 case CellType.Crystal:

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using EmPuzzleLogic.Analyze;
 using EmPuzzleLogic.Behaviour;
@@ -14,6 +15,11 @@ namespace EmPuzzleLogic.Entity
         public int Height { get; private set; }
 
         public int WeakSlot { get; set; } = -1;
+
+        public Bitmap Image
+        {
+            get { return (Bitmap)GridDrawer.GetGridImage(this); }
+        }
 
         public Dictionary<int, CellColor> _enemies = new Dictionary<int, CellColor>();
         
@@ -49,8 +55,12 @@ namespace EmPuzzleLogic.Entity
             set { this[position.X, position.Y] = value; }
         }
 
-        public CollapseResult Collapse(List<CellItem> additional = null)
+        public CollapseResult Collapse(List<CellItem> additional = null, List<CellItem> generated = null)
         {
+            if (generated == null)
+            {
+                generated = new List<CellItem>();
+            }
             if (additional == null) 
                 additional = new List<CellItem>();
             var collapsing = GetCollapsingCells();
@@ -61,7 +71,7 @@ namespace EmPuzzleLogic.Entity
             }
             var result = inCollapse.Union(additional).Distinct().ToList();
             var newItems = GridAnalyzer.GetGeneratedCells(result);
-            
+            generated.AddRange(newItems);
             foreach (var cellItem in result)
             {
                 this[cellItem.Position.X, cellItem.Position.Y] = null;
@@ -172,10 +182,19 @@ namespace EmPuzzleLogic.Entity
         public Grid Clone()
         {
             var result = new Grid(Width, Height);
-            foreach (var cellItem in this._grid)
+            for (var i0 = 0; i0 < this._grid.GetLength(0); i0++)
+            for (var i1 = 0; i1 < this._grid.GetLength(1); i1++)
             {
-                result[cellItem.Position.X, cellItem.Position.Y] = new CellItem(cellItem.Type, cellItem.Tag);
+                var cellItem = this._grid[i0, i1];
+                if (cellItem == null)
+                    result[i0, i1] = null;
+                else
+                    result[cellItem.Position.X, cellItem.Position.Y] = new CellItem(cellItem.Type, cellItem.Tag);
             }
+
+            result.WeakSlot = WeakSlot;
+            result._enemies = _enemies;
+            
             return result;
         }
 

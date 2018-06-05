@@ -29,6 +29,11 @@ namespace EmPuzzleLogic.Entity
             set => _collapsedByColumns[column] = value;
         }
 
+        public int Total
+        {
+            get { return _collapsedByColumns.SelectMany(s => s.Value.Values).Sum(); }
+        }
+
         public IEnumerator<KeyValuePair<int, Dictionary<CellColor, int>>> GetEnumerator()
         {
             return _collapsedByColumns.GetEnumerator();

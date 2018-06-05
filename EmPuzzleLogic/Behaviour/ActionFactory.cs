@@ -43,22 +43,22 @@ namespace EmPuzzleLogic.Behaviour
                 case SwapType.Down:
                     if (_item.Parent.Height <= _item.Position.Y + 1)
                         throw new MovementException($"Cant move cell {_item} down");
-                    Swap(_item, _item.Parent[_item.Position.X, _item.Position.Y + 1]);
+                    Swap(_item, _item.Position.X, _item.Position.Y + 1);
                     break;
                 case SwapType.Up:
                     if (_item.Position.Y - 1 < 0)
                         throw new MovementException($"Cant move cell {_item} up");
-                    Swap(_item, _item.Parent[_item.Position.X, _item.Position.Y - 1]);
+                    Swap(_item, _item.Position.X, _item.Position.Y - 1);
                     break;
                 case SwapType.Right:
                     if (_item.Parent.Width <= _item.Position.X + 1)
                         throw new MovementException($"Cant move cell {_item} right");
-                    Swap(_item, _item.Parent[_item.Position.X + 1, _item.Position.Y]);
+                    Swap(_item, _item.Position.X + 1, _item.Position.Y);
                     break;
                 case SwapType.Left:
                     if (_item.Position.X - 1 < 0)
                         throw new MovementException($"Cant move cell {_item} left");
-                    Swap(_item, _item.Parent[_item.Position.X - 1, _item.Position.Y]);
+                    Swap(_item, _item.Position.X - 1, _item.Position.Y);
                     break;
                 case SwapType.Point:
                 case SwapType.Kill:
@@ -97,37 +97,41 @@ namespace EmPuzzleLogic.Behaviour
                 case SwapType.Down:
                     if (_item.Parent.Height <= _item.Position.Y + 1)
                         throw new MovementException($"Cant move cell {_item} down");
-                    Swap(_item, _item.Parent[_item.Position.X, _item.Position.Y + 1]);
+                    Swap(_item, _item.Position.X, _item.Position.Y + 1);
                     break;
                 case SwapType.Up:
                     if (_item.Position.Y - 1 < 0)
                         throw new MovementException($"Cant move cell {_item} up");
-                    Swap(_item, _item.Parent[_item.Position.X, _item.Position.Y - 1]);
+                    Swap(_item, _item.Position.X, _item.Position.Y - 1);
                     break;
                 case SwapType.Right:
                     if (_item.Parent.Width <= _item.Position.X + 1)
                         throw new MovementException($"Cant move cell {_item} right");
-                    Swap(_item, _item.Parent[_item.Position.X + 1, _item.Position.Y]);
+                    Swap(_item, _item.Position.X + 1, _item.Position.Y);
                     break;
                 case SwapType.Left:
                     if (_item.Position.X - 1 < 0)
                         throw new MovementException($"Cant move cell {_item} left");
-                    Swap(_item, _item.Parent[_item.Position.X - 1, _item.Position.Y]);
+                    Swap(_item, _item.Position.X - 1, _item.Position.Y);
                     break;
                 case SwapType.Point:
                 case SwapType.Kill:
                     touch.Add(_item);
                     if (_item.Position.X > 0)
-                        touch.AddRange(ActionFactory.GetBehaviour(_item.Parent[_item.Position.X - 1, _item.Position.Y])
+                        if(_item.Parent[_item.Position.X - 1, _item.Position.Y] != null)
+                            touch.AddRange(ActionFactory.GetBehaviour(_item.Parent[_item.Position.X - 1, _item.Position.Y])
                             .Action(SwapType.Kill, touch));
                     if (_item.Position.Y > 0)
-                        touch.AddRange(ActionFactory.GetBehaviour(_item.Parent[_item.Position.X, _item.Position.Y - 1])
+                        if (_item.Parent[_item.Position.X, _item.Position.Y - 1] != null)
+                            touch.AddRange(ActionFactory.GetBehaviour(_item.Parent[_item.Position.X, _item.Position.Y - 1])
                             .Action(SwapType.Kill, touch));
                     if (_item.Position.X < _item.Parent.Width - 1)
-                        touch.AddRange(ActionFactory.GetBehaviour(_item.Parent[_item.Position.X + 1, _item.Position.Y])
+                        if (_item.Parent[_item.Position.X + 1, _item.Position.Y] != null)
+                            touch.AddRange(ActionFactory.GetBehaviour(_item.Parent[_item.Position.X + 1, _item.Position.Y])
                             .Action(SwapType.Kill, touch));
                     if (_item.Position.Y < _item.Parent.Height - 1)
-                        touch.AddRange(ActionFactory.GetBehaviour(_item.Parent[_item.Position.X, _item.Position.Y + 1])
+                        if (_item.Parent[_item.Position.X, _item.Position.Y + 1] != null)
+                            touch.AddRange(ActionFactory.GetBehaviour(_item.Parent[_item.Position.X, _item.Position.Y + 1])
                             .Action(SwapType.Kill, touch));
                     break;
             }
@@ -156,22 +160,22 @@ namespace EmPuzzleLogic.Behaviour
                 case SwapType.Down:
                     if (_item.Parent.Height <= _item.Position.Y + 1)
                         throw new MovementException($"Cant move cell {_item} down");
-                    Swap(_item, _item.Parent[_item.Position.X, _item.Position.Y + 1]);
+                    Swap(_item, _item.Position.X, _item.Position.Y + 1);
                     break;
                 case SwapType.Up:
                     if (_item.Position.Y - 1 < 0)
                         throw new MovementException($"Cant move cell {_item} up");
-                    Swap(_item, _item.Parent[_item.Position.X, _item.Position.Y - 1]);
+                    Swap(_item, _item.Position.X, _item.Position.Y - 1);
                     break;
                 case SwapType.Right:
                     if (_item.Parent.Width <= _item.Position.X + 1)
                         throw new MovementException($"Cant move cell {_item} right");
-                    Swap(_item, _item.Parent[_item.Position.X + 1, _item.Position.Y]);
+                    Swap(_item, _item.Position.X + 1, _item.Position.Y);
                     break;
                 case SwapType.Left:
                     if (_item.Position.X - 1 < 0)
                         throw new MovementException($"Cant move cell {_item} left");
-                    Swap(_item, _item.Parent[_item.Position.X - 1, _item.Position.Y]);
+                    Swap(_item, _item.Position.X - 1, _item.Position.Y);
                     break;
                 case SwapType.Kill:
                     touch.Add(_item);

@@ -31,6 +31,8 @@ namespace EmPuzzleLogic.Analyze
                 for (int j = 0; j < limH; j++)
                 {
                     var testGrid = grid.Clone();
+                    if(testGrid[i, j] == null)
+                        continue;
                     var pointed = ActionFactory.GetBehaviour(testGrid[i, j]).Action(type);
                     var collapsing = testGrid.GetCollapsingCells().Union(pointed).ToList();
                     if (collapsing.Any())
@@ -46,8 +48,9 @@ namespace EmPuzzleLogic.Analyze
                                     .Action(SwapType.Kill, newCollapsing));
                             }
 
-                            swap.Result.Append(testGrid.Collapse(newCollapsing));
+                            swap.Result.Append(testGrid.Collapse(newCollapsing, swap.Generated));
                             collapsing = testGrid.GetCollapsingCells().Distinct().ToList();
+                            swap.FinalGrid = testGrid;
                         }
                         result.Add(swap);
                     }
@@ -70,7 +73,7 @@ namespace EmPuzzleLogic.Analyze
                 {
                     foreach (var i in pair.Value)
                     {
-                        swapResult.Weight += GetCellValue(i.Key, grid._enemies[pair.Key]);
+                        swapResult.Weight += i.Value * GetCellValue(i.Key, grid._enemies[pair.Key]);
                     }
                 }
 
@@ -204,12 +207,14 @@ namespace EmPuzzleLogic.Analyze
             if (items.Count > 4)
             {
                 result.Type = CellType.Crystal;
+                result.Tag = tag;
                 return result;
             }
 
             if (items.Count > 3)
             {
                 result.Type = CellType.Dragon;
+                result.Tag = tag;
                 return result;
             }
 

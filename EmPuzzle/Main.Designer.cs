@@ -103,6 +103,7 @@
             // 
             // clbSwaps
             // 
+            this.clbSwaps.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.clbSwaps.FormattingEnabled = true;
             this.clbSwaps.Location = new System.Drawing.Point(12, 411);
             this.clbSwaps.Name = "clbSwaps";

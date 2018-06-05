@@ -21,14 +21,13 @@ namespace EmPuzzleLogic.Behaviour
 
         public abstract List<CellItem> Action(SwapType action, List<CellItem> processed = null);
 
-        protected void Swap(CellItem item1, CellItem item2)
+        protected void Swap(CellItem item1, int newPosX, int newPosY)
         {
-            if(item1.Parent != item2.Parent)
-                throw new ArgumentException("Cross grid swap!");
             var position1 = item1.Position;
-            var position2 = item2.Position;
-            item1.Parent[position1] = item2;
-            item2.Parent[position2] = item1;
+            var position2 = new CellPosition(newPosX, newPosY);
+            var tmp = item1.Parent[position2];
+            item1.Parent[position2] = item1;
+            item1.Parent[position1] = tmp;
         }
     }
 }

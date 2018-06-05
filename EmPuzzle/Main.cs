@@ -67,8 +67,10 @@ namespace EmPuzzle
                 }
             }
             pbGameGrid.Image = GridDrawer.GetGridImage(grid);
+            pbEnemies.Image = new Bitmap(pbEnemies.Width, pbEnemies.Height);
             GridDrawer.GetGridEnemies(grid, pbEnemies.Image);
             var results = GridAnalyzer.GetPossibleSwaps(grid);
+            results = results.OrderByDescending(r => r, new TitanSwapComparer()).ToList();
             clbSwaps.Items.Clear();
             clbSwaps.Items.AddRange(items: results.ToArray());
             if(results.Count > 0)
@@ -182,9 +184,13 @@ namespace EmPuzzle
         private void clbSwaps_SelectedIndexChanged(object sender, EventArgs e)
         {
             var listBox = sender as CheckedListBox;
+            var swap = listBox.SelectedItem as SwapResult;
             pbGameGrid.Image = GridDrawer.GetGridImage(_grid);
-            GridDrawer.DrawSwap((Bitmap) pbGameGrid.Image, listBox.SelectedItem as SwapResult);
-            GridDrawer.GetSwapResultPicture(listBox.SelectedItem as SwapResult, pbEnemies.Image);
+            GridDrawer.DrawSwap((Bitmap) pbGameGrid.Image, swap);
+            pbEnemies.Image = new Bitmap(pbEnemies.Width, pbEnemies.Height);
+            GridDrawer.GetGridEnemies(_grid, pbEnemies.Image);
+            GridDrawer.GetSwapResultPicture(swap, pbEnemies.Image);
+            var proposed = swap.NextTurnPropositions;
         }
     }
 }
