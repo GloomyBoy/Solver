@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Remoting;
 using System.Security.Cryptography.X509Certificates;
 using Emgu.CV.XImgproc;
@@ -139,12 +140,11 @@ namespace EmPuzzleLogic.Analyze
                         {
                             count++;
                         }
-
-                        i += count - 1;
                         if (count > 2)
                         {
-                            groups.Add((i, i + count - 1, horzLine.Key, false));
+                            groups.Add((orderedLine[i].Position.X, orderedLine[i + count - 1].Position.X, horzLine.Key, false));
                         }
+                        i += count - 1;
                     }
                 }
                 foreach (var vertLine in color.GroupBy(c => c.Position.X))
@@ -158,12 +158,11 @@ namespace EmPuzzleLogic.Analyze
                         {
                             count++;
                         }
-
-                        i += count - 1;
                         if (count > 2)
                         {
-                            groups.Add((i, i + count - 1, vertLine.Key, true));
+                            groups.Add((orderedLine[i].Position.Y, orderedLine[i + count - 1].Position.Y, vertLine.Key, true));
                         }
+                        i += count - 1;
                     }
                 }
 
@@ -171,39 +170,44 @@ namespace EmPuzzleLogic.Analyze
                     continue;
 
                 List<(int, int, int, bool)> killedGroup = new List<(int, int, int, bool)>();
-                var group = groups.Take(1).ToList();
-                killedGroup.AddRange(group);
-                groups.Remove(group.Single());
-                bool first = true;
-                while (group.Count > 0 && (groups.Any() || first))
+
+                List<(int min, int max, int coord, bool vert)> _getIntersected(List<(int min, int max, int coord, bool vert)> allGroups,
+                    (int min, int max, int coord, bool vert) current)
                 {
-                    first = false;
-                    foreach (var valueTuple in @group)
-                    {
-                        var inter = groups.Where(g =>
-                            g.vert != valueTuple.vert && g.coord >= valueTuple.min && g.coord <= valueTuple.max).Distinct().ToList();
-                        if (!inter.Any())
-                        {
-                            var newItem = CheckKilledGroup(killedGroup, color.Key);
-                            if (newItem != null)
-                            {
-                                result.Add(newItem);
-                            }
-                            killedGroup.Clear();
-                            group = groups.Take(1).ToList();
-                            if (group.Count > 0)
-                            {
-                                killedGroup.AddRange(group);
-                                if (groups.Contains(group.Single()))
-                                    groups.Remove(group.Single());
-                            }
-                        }
-                        group.RemoveAll(r => inter.Any(i =>
-                            i.min == r.min && i.max == r.max && i.coord == r.coord && i.vert == r.vert));
-                        killedGroup.AddRange(inter);
-                        group = inter.ToList();
-                    }
+                    return allGroups.Where(t =>
+                        t.vert != current.vert 
+                        && t.coord >= current.min 
+                        && t.coord <= current.max
+                        && current.coord >= t.min
+                        && current.coord <= t.max
+                        ).ToList();
                 }
+
+                do
+                {
+                    var group = groups.Take(1).ToList();
+                    killedGroup.AddRange(group);
+                    groups.RemoveAll(g0 => group.Any(g => g.min == g0.min && g.max == g0.max && g.coord == g0.coord && g.vert == g0.vert));
+                    var intersected = _getIntersected(groups, group.Single());
+                    while (intersected.Count > 0)
+                    {
+                        killedGroup.AddRange(intersected);
+                        var newIntersected = new List<(int min, int max, int coord, bool vert)>();
+                        groups.RemoveAll(g0 => intersected.Any(g => g.min == g0.min && g.max == g0.max && g.coord == g0.coord && g.vert == g0.vert));
+                        foreach (var iG in intersected)
+                        {
+                            var ni = _getIntersected(groups, iG);
+                            groups.RemoveAll(g0 => ni.Any(g => g.min == g0.min && g.max == g0.max && g.coord == g0.coord && g.vert == g0.vert));
+                            newIntersected.AddRange(ni);
+                        }
+                        intersected = newIntersected;
+                    }
+                    var newItem = CheckKilledGroup(killedGroup, color.Key);
+                    killedGroup = new List<(int, int, int, bool)>();
+                    if(newItem != null)
+                        result.Add(newItem);
+
+                } while (groups.Count > 0);
             }
 
             return result;
