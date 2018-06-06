@@ -72,37 +72,48 @@ namespace EmPuzzleLogic
 
         public static void LoadImage(Bitmap image, out Grid grid)
         {
-            grid = null;
-            if (image == null)
-                return;
-            Grid result_grid = new Grid(7, 5);
-            System.Drawing.Imaging.PixelFormat format =  image.PixelFormat;
-            for (int i = 0; i < _gridXCount; i++)
-            {                
-                for (int j = 0; j < _gridYCount; j++)
+            try
+            {
+                grid = null;
+                if (image == null)
+                    return;
+                Grid result_grid = new Grid(7, 5);
+                System.Drawing.Imaging.PixelFormat format = image.PixelFormat;
+                for (int i = 0; i < _gridXCount; i++)
                 {
-                    Rectangle rect = new Rectangle(_gridStart.X + _cellSize * i, _gridStart.Y + _cellSize * j, _cellSize, _cellSize);
-                    var pic = image.Clone(rect, format);
-                    var cellType = FindColor(pic);
-                    if (cellType.Item1 == CellColor.None)
-                        return;
-                    result_grid[i, j] = new CellItem(cellType.Item2, cellType.Item1);                    
+                    for (int j = 0; j < _gridYCount; j++)
+                    {
+                        Rectangle rect = new Rectangle(_gridStart.X + _cellSize * i, _gridStart.Y + _cellSize * j,
+                            _cellSize, _cellSize);
+                        var pic = image.Clone(rect, format);
+                        var cellType = FindColor(pic);
+                        if (cellType.Item1 == CellColor.None)
+                            return;
+                        result_grid[i, j] = new CellItem(cellType.Item2, cellType.Item1);
+                    }
                 }
-            }
 
-            var imageGray = new Image<Gray, float>(image);
-            var points = GetTemplatePosition(imageGray, _weakPoint, 0.9);
-            if (points?.Length != 0)
-            {
-                result_grid.WeakSlot = (points[0].X - _gridStart.X) / _cellSize; ;
-            }
+                var imageGray = new Image<Gray, float>(image);
+                var points = GetTemplatePosition(imageGray, _weakPoint, 0.7);
+                if (points?.Length != 0)
+                {
+                    result_grid.WeakSlot = (points[0].X - _gridStart.X) / _cellSize;
+                    ;
+                }
 
-            var result = DetectEnemies(image);
-            foreach (var cellColor in result)
-            {
-                result_grid._enemies[cellColor.Key] = cellColor.Value;
+                var result = DetectEnemies(image);
+                foreach (var cellColor in result)
+                {
+                    result_grid._enemies[cellColor.Key] = cellColor.Value;
+                }
+
+                grid = result_grid;
             }
-            grid = result_grid;
+            catch (Exception ex)
+            {
+                Logger.SaveErrorScreen(image);
+                grid = null;
+            }
         }
 
         public static void LoadImage(string path, out Grid grid)
@@ -131,51 +142,30 @@ namespace EmPuzzleLogic
 
         public static Dictionary<int, CellColor> DetectEnemies(Bitmap grid)
         {
-            var smallCircle = _enemyCirclesSmall.First();
-
-            var gridT = new Image<Gray, float>(grid);
             Dictionary<int, (int, CellColor)> enemies = new Dictionary<int, (int, CellColor)>();
-            Point[] position = GetTemplatePosition(gridT, new Image<Gray, float>(smallCircle.Value.Bitmap), 0.4);
-            while (position.Length > 0)
+
+            Brush mask = new SolidBrush(Color.Black);
+
+            bool found = false;
+            do
             {
-                var rectX = position[0].X - 30;
-                var rectY = position[0].Y - 30;
-                var hX = (position[0].Y - rectY) + smallCircle.Value.Height + 30;
-                var wX = position[0].X - rectX + smallCircle.Value.Width + 30;
-                if (wX + rectX > grid.Width)
+                foreach (var smallCircle in _enemyCirclesSmall)
                 {
-                    wX = grid.Width - rectX;
-                }
-
-                if (hX + rectY > grid.Height)
-                {
-                    hX = grid.Height - rectY;
-                }
-
-                if (rectX < 0)
-                    rectX = 0;
-                if (rectY < 0)
-                    rectY = 0;
-
-
-                var rectangle = new Rectangle(rectX, rectY, wX, hX);
-                var cloned = grid.Clone(rectangle, grid.PixelFormat);
-                var color = GetEnemyColor(cloned, 1);
-                foreach (var i in GetEnemyPosition(position[0].X, 1))
-                {
-                    if (!enemies.ContainsKey(i) || enemies[i].Item1 < position[0].Y)
+                    var gridT = new Image<Bgr, byte>(grid);
+                    Point[] position = GetTemplatePosition(gridT, smallCircle.Value, 0.65, out var cDiff1);
+                    if (position.Length == 0)
                     {
-                        enemies[i] = (position[0].Y, color);
+                        found = false;
+                        continue;
                     }
+
+                    Graphics g = Graphics.FromImage(grid);
+                    g.FillRectangle(mask, new Rectangle(position[0], smallCircle.Value.Size));
+                    g.Save();
+                    found = true;
+                    break;
                 }
-                
-                var newBmp = grid;
-                Graphics g = Graphics.FromImage(newBmp);
-                g.FillRectangle(new SolidBrush(Color.Black), position[0].X, position[0].Y, smallCircle.Value.Width, smallCircle.Value.Height);
-                g.Save();
-                gridT = new Image<Gray, float>(newBmp);
-                position = GetTemplatePosition(gridT, new Image<Gray, float>(smallCircle.Value.Bitmap), 0.5);
-            }
+            } while (found);
 
             return enemies.ToDictionary(e => e.Key, e => e.Value.Item2);
         }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Security.Cryptography.X509Certificates;
@@ -61,33 +63,42 @@ namespace EmPuzzleLogic.Analyze
 
         public static List<SwapResult> GetPossibleSwaps(Grid grid)
         {
-            List<SwapResult> results = new List<SwapResult>();
-
-            results.AddRange(GetPossibleSwaps(grid, SwapType.Point));
-            results.AddRange(GetPossibleSwaps(grid, SwapType.Right));
-            results.AddRange(GetPossibleSwaps(grid, SwapType.Down));
-            
-            foreach (var swapResult in results)
+            try
             {
-                foreach (var pair in swapResult.Result)
+                List<SwapResult> results = new List<SwapResult>();
+
+                results.AddRange(GetPossibleSwaps(grid, SwapType.Point));
+                results.AddRange(GetPossibleSwaps(grid, SwapType.Right));
+                results.AddRange(GetPossibleSwaps(grid, SwapType.Down));
+
+                foreach (var swapResult in results)
                 {
-                    foreach (var i in pair.Value)
+                    foreach (var pair in swapResult.Result)
                     {
-                        swapResult.Weight += i.Value * GetCellValue(i.Key, grid._enemies[pair.Key]);
+                        foreach (var i in pair.Value)
+                        {
+                            swapResult.Weight += i.Value * GetCellValue(i.Key, grid._enemies[pair.Key]);
+                        }
+                    }
+
+                    if (grid.WeakSlot >= 0)
+                    {
+                        if (swapResult.Result[grid.WeakSlot].Sum(r => r.Value) >= 3)
+                        {
+                            swapResult.Weight = swapResult.Weight * 5;
+                            swapResult.WeakShot = true;
+                        }
                     }
                 }
 
-                if (grid.WeakSlot >= 0)
-                {
-                    if (swapResult.Result[grid.WeakSlot].Sum(r => r.Value) >= 3)
-                    {
-                        swapResult.Weight = swapResult.Weight * 5;
-                        swapResult.WeakShot = true;
-                    }
-                }
+
+                return results.OrderByDescending(r => r.Weight).ToList();
             }
-
-            return results.OrderByDescending(r => r.Weight).ToList();
+            catch (Exception e)
+            {
+               Logger.SaveErrorScreen(grid.Image);
+            }
+            return new List<SwapResult>();
         }
 
         public static int GetCellValue(CellColor cell, CellColor enemy)
@@ -163,8 +174,10 @@ namespace EmPuzzleLogic.Analyze
                 var group = groups.Take(1).ToList();
                 killedGroup.AddRange(group);
                 groups.Remove(group.Single());
-                while (groups.Any())
+                bool first = true;
+                while (group.Count > 0 && (groups.Any() || first))
                 {
+                    first = false;
                     foreach (var valueTuple in @group)
                     {
                         var inter = groups.Where(g =>
@@ -178,8 +191,12 @@ namespace EmPuzzleLogic.Analyze
                             }
                             killedGroup.Clear();
                             group = groups.Take(1).ToList();
-                            killedGroup.AddRange(group);
-                            groups.Remove(group.Single());
+                            if (group.Count > 0)
+                            {
+                                killedGroup.AddRange(group);
+                                if (groups.Contains(group.Single()))
+                                    groups.Remove(group.Single());
+                            }
                         }
                         group.RemoveAll(r => inter.Any(i =>
                             i.min == r.min && i.max == r.max && i.coord == r.coord && i.vert == r.vert));

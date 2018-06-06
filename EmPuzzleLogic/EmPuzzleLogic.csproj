@@ -73,6 +73,7 @@
     <Compile Include="Enum\SwapType.cs" />
     <Compile Include="GridDrawer.cs" />
     <Compile Include="Helper\ProcessHelper.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="PictureHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
