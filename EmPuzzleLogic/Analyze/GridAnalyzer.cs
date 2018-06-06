@@ -163,7 +163,7 @@ namespace EmPuzzleLogic.Analyze
                 var group = groups.Take(1).ToList();
                 killedGroup.AddRange(group);
                 groups.Remove(group.Single());
-                while (groups.Any())
+                while (groups.Any() || group.Count > 0)
                 {
                     foreach (var valueTuple in @group)
                     {

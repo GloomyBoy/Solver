@@ -190,7 +190,7 @@ namespace EmPuzzle
             pbEnemies.Image = new Bitmap(pbEnemies.Width, pbEnemies.Height);
             GridDrawer.GetGridEnemies(_grid, pbEnemies.Image);
             GridDrawer.GetSwapResultPicture(swap, pbEnemies.Image);
-            var proposed = swap.NextTurnPropositions;
+            //var proposed = swap.NextTurnPropositions;
         }
     }
 }
