@@ -39,6 +39,7 @@
             this.btnSavePreview = new System.Windows.Forms.Button();
             this.cbTitanColor = new System.Windows.Forms.ComboBox();
             this.pbEnemies = new System.Windows.Forms.PictureBox();
+            this.cbRec = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pbGameGrid)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbScreenshot)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbPreview)).BeginInit();
@@ -148,11 +149,23 @@
             this.pbEnemies.TabIndex = 10;
             this.pbEnemies.TabStop = false;
             // 
+            // cbRec
+            // 
+            this.cbRec.AutoSize = true;
+            this.cbRec.Location = new System.Drawing.Point(618, 558);
+            this.cbRec.Name = "cbRec";
+            this.cbRec.Size = new System.Drawing.Size(48, 17);
+            this.cbRec.TabIndex = 11;
+            this.cbRec.Text = "REC";
+            this.cbRec.UseVisualStyleBackColor = true;
+            this.cbRec.CheckedChanged += new System.EventHandler(this.cbRec_CheckedChanged);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(675, 665);
+            this.Controls.Add(this.cbRec);
             this.Controls.Add(this.pbEnemies);
             this.Controls.Add(this.cbTitanColor);
             this.Controls.Add(this.btnSavePreview);
@@ -187,6 +200,7 @@
         private System.Windows.Forms.Button btnSavePreview;
         private System.Windows.Forms.ComboBox cbTitanColor;
         private System.Windows.Forms.PictureBox pbEnemies;
+        private System.Windows.Forms.CheckBox cbRec;
     }
 }
 

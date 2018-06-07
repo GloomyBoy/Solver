@@ -94,7 +94,7 @@ namespace EmPuzzleLogic
                 }
 
                 var imageGray = new Image<Gray, float>(image);
-                var points = GetTemplatePosition(imageGray, _weakPoint, 0.7);
+                var points = GetTemplatePosition(imageGray, _weakPoint, 0.5);
                 if (points?.Length != 0)
                 {
                     result_grid.WeakSlot = (points[0].X - _gridStart.X) / _cellSize;

@@ -21,6 +21,8 @@ namespace EmPuzzle
 {
     public partial class Main : Form
     {
+        private string _recordFolder;
+        private int _recordIndex;
         private Timer _timer;
         private Point _startLocation;
         private Grid _grid;
@@ -59,6 +61,11 @@ namespace EmPuzzle
                 return;
             
             _grid = grid;
+            if (cbRec.Checked)
+            {
+                bitmap.Save(_recordFolder + $"\\record_{_recordIndex}.png");
+                _recordIndex++;
+            }
             if (_grid.WeakSlot >= 0 && cbTitanColor.SelectedIndex >= 0)
             {
                 foreach (var i in Enumerable.Range(1, 5))
@@ -118,7 +125,7 @@ namespace EmPuzzle
 
         private void pbScreenshot_MouseUp(object sender, MouseEventArgs e)
         {
-            var endPoint = e.Location;
+            /*var endPoint = e.Location;
             var sP = GetOriginalPoint(_startLocation);
             var eP = GetOriginalPoint(endPoint);
             var rect = new System.Drawing.Rectangle(Math.Min(sP.X, eP.X),
@@ -127,7 +134,7 @@ namespace EmPuzzle
             
             var image = (Bitmap) pbScreenshot.Image;
             var pic = image.Clone(rect, pbScreenshot.Image.PixelFormat);
-            pbPreview.Image = pic;
+            pbPreview.Image = pic;*/
 
         }
 
@@ -191,6 +198,25 @@ namespace EmPuzzle
             GridDrawer.GetGridEnemies(_grid, pbEnemies.Image);
             GridDrawer.GetSwapResultPicture(swap, pbEnemies.Image);
             //var proposed = swap.NextTurnPropositions;
+        }
+
+        private void cbRec_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox cbRec = sender as CheckBox;
+            if (cbRec.Checked)
+            {
+                var folder = DateTime.Now.ToString("yyyy_MM_dd-hh_mm_ss");
+                if (!Directory.Exists(Environment.CurrentDirectory + "\\Screenshot\\"))
+                    Directory.CreateDirectory(Environment.CurrentDirectory + "\\Screenshot\\");
+                if (!Directory.Exists(Environment.CurrentDirectory + "\\Screenshot\\" + folder))
+                    Directory.CreateDirectory(Environment.CurrentDirectory + "\\Screenshot\\" + folder);
+                _recordFolder = Environment.CurrentDirectory + "\\Screenshot\\" + folder;
+            }
+            else
+            {
+                _recordFolder = string.Empty;
+                _recordIndex = 0;
+            }
         }
     }
 }
