@@ -26,6 +26,8 @@ namespace EmPuzzle
         private Timer _timer;
         private Point _startLocation;
         private Grid _grid;
+        private OverlayForm _overlay = new OverlayForm();
+        
 
         public Main()
         {
@@ -45,7 +47,17 @@ namespace EmPuzzle
         private void TimerOnTick(object sender, EventArgs e)
         {
             _timer.Stop();
-            var image = ProcessHelper.CaptureProcessWindow("Bluestacks");
+
+            var image = ProcessHelper.CaptureProcessWindow("cmd", out var formRect);
+            _overlay.Left = formRect.left;
+            _overlay.Top = formRect.top;
+            _overlay.Width = formRect.right - formRect.left;
+            _overlay.Height = formRect.bottom - formRect.top;
+
+            var img = Image.FromFile("c:\\Dev\\KorotAl2\\git\\test.png");
+            _overlay.Draw(img);
+            _overlay.Show();
+
             pbScreenshot.Image = image;
             pbScreenshot.SizeMode = PictureBoxSizeMode.Zoom;
             LoadImage(image);
@@ -90,7 +102,7 @@ namespace EmPuzzle
             {
                 Directory.CreateDirectory(Environment.CurrentDirectory + "\\Screenshot");
             }
-            var image = ProcessHelper.CaptureProcessWindow("Bluestacks");
+            var image = ProcessHelper.CaptureProcessWindow("Bluestacks", out var rect);
             if (image == null)
                 return;
             image.Save(Environment.CurrentDirectory + "\\Screenshot\\" + DateTime.Now.ToString("yy-MM-dd_hh-mm-ss") + ".bmp");

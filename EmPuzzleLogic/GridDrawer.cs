@@ -9,7 +9,7 @@ namespace EmPuzzleLogic
 {
     public class GridDrawer
     {
-        private static Color GetCellColor(CellColor color)
+        public static Color GetCellColor(CellColor color)
         {
             switch (color)
             {

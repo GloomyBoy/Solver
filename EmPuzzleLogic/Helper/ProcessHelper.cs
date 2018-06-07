@@ -9,7 +9,7 @@ namespace EmPuzzleLogic.Helper
 {
     public static class ProcessHelper
     {
-        private class User32
+        public class User32
         {
             [StructLayout(LayoutKind.Sequential)]
             public struct Rect
@@ -24,8 +24,9 @@ namespace EmPuzzleLogic.Helper
             public static extern IntPtr GetWindowRect(IntPtr hWnd, ref Rect rect);
         }
 
-        public static Bitmap CaptureProcessWindow(string procName)
+        public static Bitmap CaptureProcessWindow(string procName, out User32.Rect formRect)
         {
+            formRect = new User32.Rect();
             var procs = Process.GetProcessesByName(procName);
             if (procs.Length == 0)
                 return null;
@@ -43,6 +44,7 @@ namespace EmPuzzleLogic.Helper
             var bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
             Graphics graphics = Graphics.FromImage(bmp);
             graphics.CopyFromScreen(rect.left, rect.top, 0, 0, new Size(width, height), CopyPixelOperation.SourceCopy);
+            formRect = rect;
             return bmp;
         }
     }

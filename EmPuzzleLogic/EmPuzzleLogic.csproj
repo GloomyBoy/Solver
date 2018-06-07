@@ -64,6 +64,7 @@
     <Compile Include="Behaviour\ActionFactory.cs" />
     <Compile Include="Behaviour\IBehaviour.cs" />
     <Compile Include="Behaviour\MovementException.cs" />
+    <Compile Include="Consts.cs" />
     <Compile Include="Entity\CellItem.cs" />
     <Compile Include="Entity\CellPosition.cs" />
     <Compile Include="Entity\CollapseResult.cs" />

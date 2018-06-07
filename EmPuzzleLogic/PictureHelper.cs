@@ -65,11 +65,6 @@ namespace EmPuzzleLogic
 
         private static Point _gridStart = new Point(16, 360);
 
-        private static int _cellSize = 60;
-
-        private static int _gridXCount = 7;
-        private static int _gridYCount = 5;
-
         public static void LoadImage(Bitmap image, out Grid grid)
         {
             try
@@ -77,14 +72,14 @@ namespace EmPuzzleLogic
                 grid = null;
                 if (image == null)
                     return;
-                Grid result_grid = new Grid(7, 5);
+                Grid result_grid = new Grid(Consts.GRID_X_SIZE, Consts.GRID_Y_SIZE);
                 System.Drawing.Imaging.PixelFormat format = image.PixelFormat;
-                for (int i = 0; i < _gridXCount; i++)
+                for (int i = 0; i < Consts.GRID_X_SIZE; i++)
                 {
-                    for (int j = 0; j < _gridYCount; j++)
+                    for (int j = 0; j < Consts.GRID_Y_SIZE; j++)
                     {
-                        Rectangle rect = new Rectangle(_gridStart.X + _cellSize * i, _gridStart.Y + _cellSize * j,
-                            _cellSize, _cellSize);
+                        Rectangle rect = new Rectangle(_gridStart.X + Consts.CELL_SIZE * i, _gridStart.Y + Consts.CELL_SIZE * j,
+                            Consts.CELL_SIZE, Consts.CELL_SIZE);
                         var pic = image.Clone(rect, format);
                         var cellType = FindColor(pic);
                         if (cellType.Item1 == CellColor.None)
@@ -97,7 +92,7 @@ namespace EmPuzzleLogic
                 var points = GetTemplatePosition(imageGray, _weakPoint, 0.5);
                 if (points?.Length != 0)
                 {
-                    result_grid.WeakSlot = (points[0].X - _gridStart.X) / _cellSize;
+                    result_grid.WeakSlot = (points[0].X - _gridStart.X) / Consts.CELL_SIZE;
                     ;
                 }
 
@@ -175,7 +170,7 @@ namespace EmPuzzleLogic
             switch (size)
             {
                 case 1:
-                    return (List<int>) (x % 60 > 30 ? Enumerable.Range(x / 60, 3).ToList() : Enumerable.Range(x / 60, 2).Select(i => i).ToList());
+                    return (List<int>) (x % Consts.CELL_SIZE > Consts.CELL_SIZE / 2 ? Enumerable.Range(x / Consts.CELL_SIZE, 3).ToList() : Enumerable.Range(x / Consts.CELL_SIZE, 2).Select(i => i).ToList());
             }
 
             return null;
